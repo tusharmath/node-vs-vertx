@@ -6,11 +6,11 @@ scalaVersion := "2.12.11"
 
 enablePlugins(DockerPlugin)
 exposedPorts := Seq(8666)
-
-libraryDependencies ++= Vector (
+fork := true
+libraryDependencies ++= Vector(
   Library.vertx_lang_scala,
   Library.vertx_web,
-  Library.scalaTest       % "test",
+  Library.scalaTest % "test",
   // Uncomment for clustering
   // Library.vertx_hazelcast,
 
@@ -19,5 +19,5 @@ libraryDependencies ++= Vector (
 )
 
 packageOptions += ManifestAttributes(
-  ("Main-Verticle", "scala:vertx.scala.myapp.HttpVerticle"))
-
+  ("Main-Verticle", "scala:vertx.scala.myapp.HttpVerticle")
+)

@@ -3,15 +3,6 @@ import * as cluster from 'cluster'
 import * as os from 'os'
 
 const port = 8000
-// http
-//   .createServer((req, res) => {
-//     res.write('hello world\n')
-//     res.end()
-//   })
-//   .listen(port)
-
-// console.log(`Worker ${process.pid} started ${port}`)
-
 const numCPUs = os.cpus().length / 4
 
 if (cluster.isMaster) {
