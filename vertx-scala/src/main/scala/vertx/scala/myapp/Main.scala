@@ -7,7 +7,7 @@ object Main extends App {
     .vertx()
     .deployVerticle(
       name = s"scala:${classOf[HttpVerticle].getName}",
-      options = DeploymentOptions().setInstances(12)
+      options = DeploymentOptions().setInstances(8)
     )
 
 }

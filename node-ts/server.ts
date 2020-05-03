@@ -3,7 +3,7 @@ import * as cluster from 'cluster'
 import * as os from 'os'
 
 const port = 8000
-const numCPUs = os.cpus().length / 4
+const numCPUs = os.cpus().length
 
 if (cluster.isMaster) {
   for (let i = 0; i < numCPUs; i++) {
