@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.{ChannelInitializer, SimpleChannelInboundHandler, _}
+import io.netty.channel._
 import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
 
@@ -15,13 +15,9 @@ import io.netty.util.CharsetUtil
 object HelloNetty extends App {
   def helloNetty = "Hello Netty!\n"
 
-  class NettyHandler extends SimpleChannelInboundHandler[Nothing] {
-    override def channelReadComplete(ctx: ChannelHandlerContext): Unit =
-      ctx.flush
-    override def channelRead0(
-        ctx: ChannelHandlerContext,
-        msg: Nothing
-    ): Unit = {
+  class NettyHandler extends SimpleChannelInboundHandler[Any] {
+    override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush
+    override def channelRead0(ctx: ChannelHandlerContext, msg: Any): Unit = {
       val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf)
 
