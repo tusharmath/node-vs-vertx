@@ -1,59 +1,60 @@
 package zion
 
 import java.net._
-import java.nio._
+import java.nio.ByteBuffer
 import java.nio.channels._
 
-object NHello extends App {
-  val port   = 8080
-  val server = AsynchronousServerSocketChannel.open()
+object NHello {
 
-  val address = new InetSocketAddress(port)
-  val channel = server.bind(address)
-  println("Starting...: " + port)
+  val writeByteBuffer: ByteBuffer =
+    ByteBuffer.wrap(HelloResponse.ok("Hello NIO\n").getBytes())
 
-  def httpResponse(socket: AsynchronousSocketChannel)(content: String) = {
+  def main(args: Array[String]): Unit = {
+    val port    = 8080
+    val address = new InetSocketAddress(port)
 
-    val DEMLIMITER = "\r\n"
-    val bytes = List(
-      "HTTP/1.1 200 OK",
-      "Content-Type: text/html",
-      s"Content-Length: ${content.length()}",
-      DEMLIMITER + content
-    ).mkString(DEMLIMITER).getBytes()
+    // Server Socket Channel
+    val serverSocketChannel = ServerSocketChannel.open()
+    serverSocketChannel.bind(address)
+    serverSocketChannel.configureBlocking(false)
 
-    socket.write(ByteBuffer.wrap(bytes))
-  }
+    // Selector
+    val selector = Selector.open()
+    serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
 
-  def itar: Unit = server.accept(
-    (),
-    new CompletionHandler[AsynchronousSocketChannel, Unit] {
-      override def completed(
-          socket: AsynchronousSocketChannel,
-          x$2: Unit
-      ): Unit = {
-        httpResponse(socket)("Hello World\n")
-        socket.close()
-        itar
+    new Thread(new Live()).start()
+
+    class Live extends Runnable {
+      def run(): Unit = {
+        while (true) {
+          selector.select()
+          val iterator = selector.selectedKeys().iterator()
+          while (iterator.hasNext) {
+            val key = iterator.next()
+            key match {
+              case _ if key.isAcceptable =>
+                val channel =
+                  key.channel().asInstanceOf[ServerSocketChannel].accept()
+                if (channel != null) {
+                  channel.configureBlocking(false)
+                  channel.register(selector, SelectionKey.OP_WRITE)
+                }
+              case _ if key.isWritable =>
+                val channel = key.channel().asInstanceOf[SocketChannel]
+                channel.write(writeByteBuffer.duplicate())
+                channel.close()
+            }
+          }
+          iterator.remove()
+        }
       }
-
-      override def failed(x$1: Throwable, x$2: Unit): Unit = {
-        throw x$1
-      }
-
     }
-  )
 
-  sys.addShutdownHook {
-    println("Stopping...")
-    server.close()
+    sys.addShutdownHook({
+      println("Shutting down...")
+      serverSocketChannel.close()
+    })
+
+    println("Exiting...")
   }
-
-  itar
-
-  while (true) {
-    Thread.sleep(Int.MaxValue);
-  }
-  println("DONE")
-
 }
