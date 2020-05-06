@@ -5,7 +5,6 @@ object HelloResponse {
     val delim = "\r\n"
     List(
       "HTTP/1.1 200 OK",
-      "Content-Type: text/html",
       "Connection: keep-alive",
       s"Content-Length: ${content.length()}",
       delim + content
