@@ -8,60 +8,78 @@ import java.nio.channels.{
   ServerSocketChannel,
   SocketChannel
 }
+
+import scala.collection.mutable
+import scala.concurrent.duration._
+
 object HelloNIO {
-  val PORT                     = 8090
-  private var data: ByteBuffer = null
+  val response: Array[Byte]       = HelloResponse.ok("HelloNIO.scala\n").getBytes()
+  val writeByteBuffer: ByteBuffer = ByteBuffer.wrap(response)
+  val readByteBuffer: ByteBuffer  = ByteBuffer.allocateDirect(1024 * 2)
+  val PORT                        = 8081
+  val selector                    = Selector.open()
+  val address                     = new InetSocketAddress(PORT)
 
   def main(args: Array[String]): Unit = {
-    val sel = Selector.open
+    val serverSocketChannel = ServerSocketChannel.open()
 
-    val address = new InetSocketAddress(PORT)
+    serverSocketChannel.socket.bind(address)
+    serverSocketChannel.configureBlocking(false)
+    serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
 
-    val sch = ServerSocketChannel.open()
-    sch.configureBlocking(false)
-    sch.socket.bind(address)
-
-    sch.register(sel, SelectionKey.OP_ACCEPT)
-    new Thread(new SocketProcessor(sel)).start()
+    while (true) {
+      selector.select()
+      val keys     = selector.selectedKeys()
+      val iterator = keys.iterator()
+      while (iterator.hasNext) {
+        val key = iterator.next()
+        if (key.isAcceptable) accept(key)
+        else if (key.isReadable) read(key)
+        else if (key.isWritable) write(key)
+      }
+      iterator.remove()
+    }
   }
 
-  class SocketProcessor(val sel: Selector) extends Runnable {
-    override def run(): Unit = {
-      val readBuffer = ByteBuffer.allocateDirect(2048)
-      val duplicate  = data.duplicate
-      while (this.sel.select > 0) {
-        val keys = this.sel.selectedKeys
-        val i    = keys.iterator
-        while (i.hasNext) {
-          val key = i.next
-          if (key.isAcceptable) accept(key)
-          else if (key.isReadable) read(readBuffer, key)
-          else if (key.isWritable) write(duplicate, key)
-          i.remove()
-        }
+  def accept(key: SelectionKey): Unit = {
+    val serverSocketChannel = key.channel().asInstanceOf[ServerSocketChannel]
+    val socketChannel       = serverSocketChannel.accept()
+    if (socketChannel != null) {
+      socketChannel.configureBlocking(false)
+      socketChannel.register(selector, SelectionKey.OP_READ)
+    }
+  }
+
+  def read(key: SelectionKey): Unit = {
+    val socketChannel = key.channel().asInstanceOf[SocketChannel]
+    tryWithSocket(socketChannel) {
+      val bytes = socketChannel.read(readByteBuffer)
+      readByteBuffer.rewind()
+
+      if (bytes > -1) {
+        key.interestOps(SelectionKey.OP_WRITE)
+      } else {
+        key.interestOps(0)
       }
     }
+  }
 
-    private def accept(key: SelectionKey): Unit = {
-      val sch = key.channel.asInstanceOf[ServerSocketChannel]
-      val ch  = sch.accept
-      ch.configureBlocking(false)
-      ch.register(this.sel, SelectionKey.OP_READ)
-    }
+  def write(key: SelectionKey): Unit = {
+    val socketChannel = key.channel().asInstanceOf[SocketChannel]
+    tryWithSocket(socketChannel) {
+      socketChannel.write(writeByteBuffer.duplicate())
 
-    private def write(duplicate: ByteBuffer, key: SelectionKey): Unit = {
-      val ch = key.channel.asInstanceOf[SocketChannel]
-      ch.write(duplicate)
-      duplicate.rewind
-      ch.register(this.sel, SelectionKey.OP_READ)
-    }
-
-    private def read(readBuffer: ByteBuffer, key: SelectionKey): Unit = {
-      val ch = key.channel.asInstanceOf[SocketChannel]
-      ch.read(readBuffer)
-      readBuffer.rewind
-      ch.register(this.sel, SelectionKey.OP_WRITE)
+      socketChannel.register(selector, SelectionKey.OP_READ)
     }
   }
 
+  def tryWithSocket(socketChannel: SocketChannel)(task: => Unit) = {
+    try {
+      task
+    } catch {
+      case e: Throwable =>
+        e.printStackTrace()
+        socketChannel.close()
+    }
+  }
 }

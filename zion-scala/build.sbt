@@ -9,7 +9,7 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalacOptions := Seq(
   "-language:postfixOps"
 )
-mainClass in (Compile, run) := Some("zion.NHello")
+mainClass in (Compile, run) := Some("zion.HelloNIO")
 //lazy val root = (project in file("."))
 //  .settings(
 //    name := "zion-scala"
