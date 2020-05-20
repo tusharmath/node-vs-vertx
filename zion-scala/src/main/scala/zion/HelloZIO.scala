@@ -85,7 +85,7 @@ object HelloZIO extends App {
       _ <- ZStream
             .repeatEffect(server.accept())
             // Allow only a million parallel connections
-            .mapMParUnordered(2)(socketHandler)
+            .mapMParUnordered(1_000_000)(socketHandler)
             .runDrain
     } yield 0).orDie.as(0)
 }
