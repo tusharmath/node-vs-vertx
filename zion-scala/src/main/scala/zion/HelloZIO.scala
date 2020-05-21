@@ -73,12 +73,6 @@ object HelloZIO extends App {
           }
     } yield ()
 
-  def acceptAndConnect(server: AsynchronousServerSocketChannel): Task[Int] =
-    for {
-      socket <- server.accept()
-      _      <- socketHandler(socket) <&> acceptAndConnect(server)
-    } yield 0
-
   override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
     (for {
       server <- serverSocketChannel.bind(new InetSocketAddress(PORT))
