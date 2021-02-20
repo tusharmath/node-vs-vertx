@@ -7,7 +7,7 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalacOptions := Seq(
   "-language:postfixOps"
 )
-mainClass in (Compile, run) := Some("zion.HelloZIO")
+mainClass in (Compile, run) := Some("zion.HelloNetty")
 
 libraryDependencies += "dev.zio"  %% "zio"         % "1.0.0-RC19-2"
 libraryDependencies += "io.netty" % "netty-all"    % "4.1.49.Final"

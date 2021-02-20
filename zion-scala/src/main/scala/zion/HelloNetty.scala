@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel._
+import io.netty.channel.epoll.{EpollEventLoopGroup, EpollServerSocketChannel}
 import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
 
@@ -13,7 +14,7 @@ import io.netty.util.CharsetUtil
   * Handles a server-side channel.
   */
 object HelloNetty extends App {
-  def helloNetty = "Hello Netty!\n"
+  def helloNetty = "Hello World"
 
   class NettyHandler extends SimpleChannelInboundHandler[Any] {
     override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush
@@ -37,13 +38,13 @@ object HelloNetty extends App {
       }
 
     def run(): Unit = {
-      val eventLoopGroup = new NioEventLoopGroup()
+      val eventLoopGroup = new EpollEventLoopGroup()
       try {
         val serverBootstrap = new ServerBootstrap
 
         serverBootstrap
           .group(eventLoopGroup)
-          .channel(classOf[NioServerSocketChannel])
+          .channel(classOf[EpollServerSocketChannel])
           .childHandler(value)
         val channel = serverBootstrap.bind(7070).sync.channel
         channel.closeFuture.sync()
