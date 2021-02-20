@@ -17,14 +17,14 @@ object HelloNetty extends App {
   def helloNetty = "Hello World"
 
   class NettyHandler extends SimpleChannelInboundHandler[Any] {
-    override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush
+    //override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush
     override def channelRead0(ctx: ChannelHandlerContext, msg: Any): Unit = {
       val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf)
 
       response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
 
-      ctx.write(response)
+      ctx.writeAndFlush(response)
     }
   }
 
