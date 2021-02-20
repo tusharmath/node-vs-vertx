@@ -33,6 +33,7 @@ object HelloNetty extends App {
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
         pipeline.addLast(new HttpServerCodec())
+        pipeline.addLast(new HttpObjectAggregator(Int.MaxValue))
         pipeline.addLast(new NettyHandler())
       }
 
