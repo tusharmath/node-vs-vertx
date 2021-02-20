@@ -10,7 +10,7 @@ class HttpVerticle extends ScalaVerticle {
     //Create a router to answer GET-requests to "/hello" with "world"
     val router = Router.router(vertx)
     val route = router
-      .get("/")
+      .post("/")
       .handler(_.response().end("Hello World\n"))
 
     vertx
