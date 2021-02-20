@@ -23,7 +23,6 @@ object HelloNetty extends App {
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf)
 
       response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
-      response.headers.set(HttpHeaders.Names.CONNECTION, "keep-alive")
 
       ctx.write(response)
     }
