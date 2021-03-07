@@ -16,11 +16,17 @@ import io.netty.util.CharsetUtil
 object HelloNetty extends App {
   def helloNetty = "Hello World"
 
-  class NettyHandler extends SimpleChannelInboundHandler[Any] {
-    //override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush
-    override def channelRead0(ctx: ChannelHandlerContext, msg: Any): Unit = {
+  class NettyHandler extends SimpleChannelInboundHandler[HttpRequest] {
+    override def channelRead0(
+        ctx: ChannelHandlerContext,
+        msg: HttpRequest
+    ): Unit = {
       val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
-      val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf)
+      val response = new DefaultFullHttpResponse(
+        HttpVersion.HTTP_1_1,
+        HttpResponseStatus.OK,
+        buf
+      )
 
       response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
 
