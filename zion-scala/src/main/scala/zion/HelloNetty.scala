@@ -2,7 +2,7 @@ package zion
 
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.{NioEventLoopGroup}
 import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel._
@@ -39,18 +39,17 @@ object HelloNetty extends App {
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
         pipeline.addLast(new HttpServerCodec())
-        pipeline.addLast(new HttpObjectAggregator(Int.MaxValue))
         pipeline.addLast(new NettyHandler())
       }
 
     def run(): Unit = {
-      val eventLoopGroup = new EpollEventLoopGroup()
+      val eventLoopGroup = new NioEventLoopGroup()
       try {
         val serverBootstrap = new ServerBootstrap
 
         serverBootstrap
           .group(eventLoopGroup)
-          .channel(classOf[EpollServerSocketChannel])
+          .channel(classOf[NioServerSocketChannel])
           .childHandler(value)
         val channel = serverBootstrap.bind(7070).sync.channel
         channel.closeFuture.sync()
