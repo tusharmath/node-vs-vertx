@@ -20,7 +20,7 @@ object HelloNetty extends App {
     override def channelRead0(
         ctx: ChannelHandlerContext,
         msg: HttpRequest
-    ): Unit = {
+  ): Unit = {      
       val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
       val response = new DefaultFullHttpResponse(
         HttpVersion.HTTP_1_1,
@@ -43,13 +43,13 @@ object HelloNetty extends App {
       }
 
     def run(): Unit = {
-      val eventLoopGroup = new NioEventLoopGroup()
+      val eventLoopGroup = new EpollEventLoopGroup()
       try {
         val serverBootstrap = new ServerBootstrap
 
         serverBootstrap
           .group(eventLoopGroup)
-          .channel(classOf[NioServerSocketChannel])
+          .channel(classOf[EpollServerSocketChannel])
           .childHandler(value)
         val channel = serverBootstrap.bind(7070).sync.channel
         channel.closeFuture.sync()
